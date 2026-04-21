@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SAP O2C Report — ZO2C_SIM</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  /* ── CSS Variables ─────────────────────────────────────── */
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --border:    #21262d;
+    --border-hi: #30363d;
+    --text:      #e6edf3;
+    --muted:     #7d8590;
+    --accent:    #1f6feb;
+    --accent-hi: #388bfd;
+    --green:     #2ea043;
+    --green-bg:  #0d2c17;
+    --yellow:    #d29922;
+    --yellow-bg: #2d2108;
+    --red:       #da3633;
+    --red-bg:    #2d1216;
+    --mono:      'IBM Plex Mono', monospace;
+    --sans:      'IBM Plex Sans', sans-serif;
+  }
+
+  /* ── Reset ──────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Top Navigation Bar ─────────────────────────────────── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    height: 52px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .sap-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    background: var(--accent);
+    color: #fff;
+    padding: 3px 9px;
+    border-radius: 3px;
+  }
+
+  .topbar-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+
+  .topbar-title span {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .topbar-right {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── Layout ─────────────────────────────────────────────── */
+  .page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 28px;
+  }
+
+  /* ── Page Header ────────────────────────────────────────── */
+  .page-header {
+    margin-bottom: 28px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+  }
+
+  .page-header h1 {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .page-header h1 small {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  .tcode-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent-hi);
+    background: rgba(31,111,235,0.12);
+    border: 1px solid rgba(31,111,235,0.3);
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── KPI Summary Cards ──────────────────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 26px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .kpi-card:hover { border-color: var(--border-hi); }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .kpi-card.blue::before  { background: var(--accent); }
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-card.yellow::before{ background: var(--yellow); }
+  .kpi-card.red::before   { background: var(--red); }
+
+  .kpi-label {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .kpi-value {
+    font-size: 26px;
+    font-weight: 600;
+    font-family: var(--mono);
+    line-height: 1;
+  }
+
+  .kpi-card.blue  .kpi-value { color: var(--accent-hi); }
+  .kpi-card.green .kpi-value { color: #3fb950; }
+  .kpi-card.yellow .kpi-value{ color: #e3b341; }
+  .kpi-card.red   .kpi-value { color: #f85149; }
+
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ── Filter Panel ───────────────────────────────────────── */
+  .filter-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 22px;
+  }
+
+  .filter-panel-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .filter-panel-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .filter-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field-group label {
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .field-group input,
+  .field-group select {
+    background: var(--bg);
+    border: 1px solid var(--border-hi);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    height: 38px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    min-width: 150px;
+  }
+
+  .field-group input:focus,
+  .field-group select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(31,111,235,0.15);
+  }
+
+  select option { background: var(--surface); }
+
+  .field-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+    cursor: pointer;
+  }
+
+  .btn-generate {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0 22px;
+    height: 38px;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.1s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-generate:hover { background: var(--accent-hi); }
+  .btn-generate:active { transform: scale(0.98); }
+
+  .btn-reset {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border-hi);
+    border-radius: 5px;
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 0 16px;
+    height: 38px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .btn-reset:hover { color: var(--text); border-color: var(--muted); }
+
+  /* ── Results Section ────────────────────────────────────── */
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .results-title {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .results-count {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .results-count span {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ── Table ──────────────────────────────────────────────── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 11px 16px;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+  }
+
+  th:hover { color: var(--text); }
+
+  th .sort-icon {
+    display: inline-block;
+    margin-left: 4px;
+    opacity: 0.4;
+  }
+
+  th.sorted .sort-icon { opacity: 1; color: var(--accent-hi); }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+
+  td {
+    padding: 11px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  td.muted { color: var(--muted); }
+
+  /* Amount column */
+  td.amount {
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* Delay days */
+  td.delay { text-align: right; font-weight: 500; }
+
+  /* ── Status Badges ──────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+  }
+
+  .badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+  }
+
+  .badge.on-time {
+    background: var(--green-bg);
+    color: #3fb950;
+    border-color: rgba(46,160,67,0.3);
+  }
+  .badge.on-time::before { background: #3fb950; }
+
+  .badge.late {
+    background: var(--yellow-bg);
+    color: #e3b341;
+    border-color: rgba(210,153,34,0.3);
+  }
+  .badge.late::before { background: #e3b341; }
+
+  .badge.high-risk {
+    background: var(--red-bg);
+    color: #f85149;
+    border-color: rgba(218,54,51,0.3);
+  }
+  .badge.high-risk::before { background: #f85149; }
+
+  /* ── Empty State ────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+
+  .empty-state p {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Loading animation ──────────────────────────────────── */
+  .loading-bar {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 1s infinite;
+    border-radius: 2px;
+    margin-bottom: 22px;
+    display: none;
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .loading-bar.active { display: block; }
+
+  /* ── O2C Flow Diagram (decorative) ─────────────────────── */
+  .o2c-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 26px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 20px;
+    overflow-x: auto;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-shrink: 0;
+  }
+
+  .flow-node {
+    background: var(--bg);
+    border: 1px solid var(--border-hi);
+    border-radius: 5px;
+    padding: 6px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .flow-node .tcode {
+    font-size: 9px;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 2px;
+    letter-spacing: 0.06em;
+  }
+
+  .flow-node .label { color: var(--text); font-weight: 500; }
+
+  .flow-node.active {
+    border-color: var(--accent);
+    background: rgba(31,111,235,0.08);
+  }
+
+  .flow-arrow {
+    font-size: 14px;
+    color: var(--border-hi);
+    padding: 0 8px;
+  }
+
+  /* ── Footer ─────────────────────────────────────────────── */
+  .footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── Fade-in animation for rows ─────────────────────────── */
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .row-animate {
+    animation: fadeSlideIn 0.25s ease both;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .filter-row { flex-direction: column; align-items: stretch; }
+    .field-group input, .field-group select { min-width: 100%; width: 100%; }
+    .btn-generate, .btn-reset { width: 100%; justify-content: center; }
+    .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .o2c-flow { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Top Navigation Bar ───────────────────────────────────────────── -->
+<nav class="topbar">
+  <div class="topbar-left">
+    <span class="sap-badge">SAP</span>
+    <span class="topbar-title">
+      <span>ZO2C_SIM</span> / Order-to-Cash Report
+    </span>
+  </div>
+  <div class="topbar-right">
+    SY-UNAME: DEMO_USER &nbsp;|&nbsp; MANDT: 100 &nbsp;|&nbsp; <span id="live-time"></span>
+  </div>
+</nav>
+
+<!-- ── Main Page ────────────────────────────────────────────────────── -->
+<main class="page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>
+      Order-to-Cash Analytics
+      <small>Program: ZO2C_SIMULATION &nbsp;·&nbsp; Simulated Data – No Backend Required</small>
+    </h1>
+    <span class="tcode-tag">T-CODE: ZO2C_SIM</span>
+  </div>
+
+  <!-- O2C Process Flow -->
+  <div class="o2c-flow">
+    <div class="flow-step">
+      <div class="flow-node active">
+        <span class="tcode">XD01</span>
+        <span class="label">Customer</span>
+      </div>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <div class="flow-node active">
+        <span class="tcode">VA01</span>
+        <span class="label">Sales Order</span>
+      </div>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <div class="flow-node active">
+        <span class="tcode">VL01N</span>
+        <span class="label">Delivery</span>
+      </div>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <div class="flow-node active">
+        <span class="tcode">VF01</span>
+        <span class="label">Invoice</span>
+      </div>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <div class="flow-node active">
+        <span class="tcode">F-28</span>
+        <span class="label">Payment</span>
+      </div>
+    </div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-step">
+      <div class="flow-node active">
+        <span class="tcode">FBL5N</span>
+        <span class="label">Reconcile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Cards (populated by JS) -->
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Total Orders</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+      <div class="kpi-sub">in current filter</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">On Time</div>
+      <div class="kpi-value" id="kpi-ontime">—</div>
+      <div class="kpi-sub">0–5 days</div>
+    </div>
+    <div class="kpi-card yellow">
+      <div class="kpi-label">Late</div>
+      <div class="kpi-value" id="kpi-late">—</div>
+      <div class="kpi-sub">6–15 days</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">High Risk</div>
+      <div class="kpi-value" id="kpi-risk">—</div>
+      <div class="kpi-sub">&gt;15 days</div>
+    </div>
+  </div>
+
+  <!-- Filter / Selection Screen Panel -->
+  <div class="filter-panel">
+    <div class="filter-panel-title">Selection Screen</div>
+    <div class="filter-row">
+
+      <div class="field-group">
+        <label>Customer ID</label>
+        <select id="filter-customer">
+          <option value="ALL">ALL</option>
+          <option value="CUST001">CUST001 – TCS</option>
+          <option value="CUST002">CUST002 – Infosys</option>
+          <option value="CUST003">CUST003 – Wipro</option>
+          <option value="CUST004">CUST004 – HCL</option>
+          <option value="CUST005">CUST005 – Tech Mahindra</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label>Date From</label>
+        <input type="date" id="filter-from" value="2024-01-01" />
+      </div>
+
+      <div class="field-group">
+        <label>Date To</label>
+        <input type="date" id="filter-to" value="2024-12-31" />
+      </div>
+
+      <div class="field-group">
+        <label>Payment Status</label>
+        <select id="filter-status">
+          <option value="ALL">ALL</option>
+          <option value="On Time">On Time</option>
+          <option value="Late">Late</option>
+          <option value="High Risk">High Risk</option>
+        </select>
+      </div>
+
+      <button class="btn-generate" onclick="generateReport()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h11A1.5 1.5 0 0 1 15 2.5v11a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 13.5v-11zm1.5-.5a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5h-11z"/>
+          <path d="M3 5.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+        </svg>
+        Generate Report
+      </button>
+
+      <button class="btn-reset" onclick="resetFilters()">Reset</button>
+
+    </div>
+  </div>
+
+  <!-- Loading bar -->
+  <div class="loading-bar" id="loading-bar"></div>
+
+  <!-- Results -->
+  <div class="results-header">
+    <span class="results-title">Report Output</span>
+    <span class="results-count">Showing <span id="row-count">0</span> records</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortTable('kunnr')">Customer ID <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('cust_name')">Customer Name <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('vbeln_ord')">Order No <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('vbeln_inv')">Invoice No <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('invoice_date')">Invoice Date <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('invoice_amt')" style="text-align:right">Amount (INR) <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('pay_date')">Payment Date <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('delay_days')" style="text-align:right">Delay Days <span class="sort-icon">↕</span></th>
+          <th onclick="sortTable('pay_status')">Status <span class="sort-icon">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="report-body">
+        <!-- rows injected by JS -->
+      </tbody>
+    </table>
+
+    <!-- empty state placeholder -->
+    <div class="empty-state" id="empty-state">
+      <div class="icon">📋</div>
+      <p>Press "Generate Report" to load O2C data</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>ZO2C_SIMULATION &nbsp;·&nbsp; Simulated Data Only – No SAP DB Tables Used</span>
+    <span>INR &nbsp;·&nbsp; MANDT 100 &nbsp;·&nbsp; ERP 6.0 EHP8</span>
+  </div>
+
+</main>
+
+<!-- ── JavaScript ────────────────────────────────────────────────────── -->
+<script>
+  // ═══════════════════════════════════════════════════════════════════
+  // SECTION 1: DUMMY DATA (mirrors the ABAP internal tables)
+  // Each object = one O2C record (Customer → Order → Invoice → Payment)
+  // ═══════════════════════════════════════════════════════════════════
+  const O2C_DATA = [
+    {
+      kunnr:        'CUST001',
+      cust_name:    'Tata Consultancy Services',
+      vbeln_ord:    'ORD0000001',
+      order_date:   '2024-01-01',
+      vbeln_inv:    'INV0000001',
+      invoice_date: '2024-01-05',
+      invoice_amt:  150000,
+      pay_date:     '2024-01-08',
+      delay_days:   3,
+      pay_status:   'On Time'
+    },
+    {
+      kunnr:        'CUST001',
+      cust_name:    'Tata Consultancy Services',
+      vbeln_ord:    'ORD0000002',
+      order_date:   '2024-02-10',
+      vbeln_inv:    'INV0000002',
+      invoice_date: '2024-02-14',
+      invoice_amt:  95000,
+      pay_date:     '2024-02-25',
+      delay_days:   11,
+      pay_status:   'Late'
+    },
+    {
+      kunnr:        'CUST002',
+      cust_name:    'Infosys Limited',
+      vbeln_ord:    'ORD0000003',
+      order_date:   '2024-01-15',
+      vbeln_inv:    'INV0000003',
+      invoice_date: '2024-01-18',
+      invoice_amt:  220000,
+      pay_date:     '2024-01-22',
+      delay_days:   4,
+      pay_status:   'On Time'
+    },
+    {
+      kunnr:        'CUST003',
+      cust_name:    'Wipro Technologies',
+      vbeln_ord:    'ORD0000004',
+      order_date:   '2024-01-20',
+      vbeln_inv:    'INV0000004',
+      invoice_date: '2024-01-24',
+      invoice_amt:  75000,
+      pay_date:     '2024-02-12',
+      delay_days:   19,
+      pay_status:   'High Risk'
+    },
+    {
+      kunnr:        'CUST004',
+      cust_name:    'HCL Technologies',
+      vbeln_ord:    'ORD0000005',
+      order_date:   '2024-02-01',
+      vbeln_inv:    'INV0000005',
+      invoice_date: '2024-02-05',
+      invoice_amt:  310000,
+      pay_date:     '2024-02-07',
+      delay_days:   2,
+      pay_status:   'On Time'
+    },
+    {
+      kunnr:        'CUST004',
+      cust_name:    'HCL Technologies',
+      vbeln_ord:    'ORD0000006',
+      order_date:   '2024-02-15',
+      vbeln_inv:    'INV0000006',
+      invoice_date: '2024-02-18',
+      invoice_amt:  180000,
+      pay_date:     '2024-03-03',
+      delay_days:   14,
+      pay_status:   'Late'
+    },
+    {
+      kunnr:        'CUST005',
+      cust_name:    'Tech Mahindra Ltd',
+      vbeln_ord:    'ORD0000007',
+      order_date:   '2024-02-05',
+      vbeln_inv:    'INV0000007',
+      invoice_date: '2024-02-10',
+      invoice_amt:  430000,
+      pay_date:     '2024-03-15',
+      delay_days:   34,
+      pay_status:   'High Risk'
+    }
+  ];
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SECTION 2: STATE
+  // ═══════════════════════════════════════════════════════════════════
+  let currentData   = [];   // currently displayed rows
+  let sortKey       = null; // column being sorted
+  let sortAscending = true; // sort direction
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SECTION 3: GENERATE REPORT
+  // Reads filters → applies them → renders table + KPIs
+  // ═══════════════════════════════════════════════════════════════════
+  function generateReport() {
+
+    // Read filter values from the form
+    const custFilter   = document.getElementById('filter-customer').value;
+    const statusFilter = document.getElementById('filter-status').value;
+    const dateFrom     = document.getElementById('filter-from').value;
+    const dateTo       = document.getElementById('filter-to').value;
+
+    // Show loading bar
+    const bar = document.getElementById('loading-bar');
+    bar.classList.add('active');
+
+    // Simulate a brief loading delay (like a real SAP execute)
+    setTimeout(() => {
+
+      // Apply filters
+      currentData = O2C_DATA.filter(row => {
+
+        // Filter: Customer ID
+        if (custFilter !== 'ALL' && row.kunnr !== custFilter) return false;
+
+        // Filter: Status
+        if (statusFilter !== 'ALL' && row.pay_status !== statusFilter) return false;
+
+        // Filter: Date range (based on invoice date)
+        if (dateFrom && row.invoice_date < dateFrom) return false;
+        if (dateTo   && row.invoice_date > dateTo)   return false;
+
+        return true; // Row passes all filters
+      });
+
+      // Render the table and update KPIs
+      renderTable(currentData);
+      updateKPIs(currentData);
+
+      bar.classList.remove('active');
+
+    }, 350); // 350ms simulated loading
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SECTION 4: RENDER TABLE
+  // Builds HTML rows from filtered data
+  // ═══════════════════════════════════════════════════════════════════
+  function renderTable(data) {
+    const tbody      = document.getElementById('report-body');
+    const emptyState = document.getElementById('empty-state');
+    const rowCount   = document.getElementById('row-count');
+
+    // Update record count
+    rowCount.textContent = data.length;
+
+    // Clear existing rows
+    tbody.innerHTML = '';
+
+    if (data.length === 0) {
+      emptyState.style.display = 'block';
+      emptyState.querySelector('p').textContent = 'No records match your filter criteria.';
+      return;
+    }
+
+    emptyState.style.display = 'none';
+
+    // Build table rows
+    data.forEach((row, index) => {
+
+      // Choose badge class based on status
+      let badgeClass = '';
+      if (row.pay_status === 'On Time')   badgeClass = 'on-time';
+      if (row.pay_status === 'Late')      badgeClass = 'late';
+      if (row.pay_status === 'High Risk') badgeClass = 'high-risk';
+
+      // Format amount with Indian comma style
+      const amountFormatted = '₹ ' + row.invoice_amt.toLocaleString('en-IN');
+
+      // Delay color
+      let delayColor = '#e6edf3';
+      if (row.delay_days > 15) delayColor = '#f85149';
+      else if (row.delay_days > 5) delayColor = '#e3b341';
+      else delayColor = '#3fb950';
+
+      // Create row
+      const tr = document.createElement('tr');
+      tr.className = 'row-animate';
+      tr.style.animationDelay = (index * 40) + 'ms';
+
+      tr.innerHTML = `
+        <td class="muted">${row.kunnr}</td>
+        <td>${row.cust_name}</td>
+        <td class="muted">${row.vbeln_ord}</td>
+        <td class="muted">${row.vbeln_inv}</td>
+        <td>${formatDate(row.invoice_date)}</td>
+        <td class="amount">${amountFormatted}</td>
+        <td>${formatDate(row.pay_date)}</td>
+        <td class="delay" style="color:${delayColor}">${row.delay_days}</td>
+        <td><span class="badge ${badgeClass}">${row.pay_status}</span></td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SECTION 5: UPDATE KPI CARDS
+  // ═══════════════════════════════════════════════════════════════════
+  function updateKPIs(data) {
+    const onTime   = data.filter(r => r.pay_status === 'On Time').length;
+    const late     = data.filter(r => r.pay_status === 'Late').length;
+    const highRisk = data.filter(r => r.pay_status === 'High Risk').length;
+
+    animateNumber('kpi-total',  data.length);
+    animateNumber('kpi-ontime', onTime);
+    animateNumber('kpi-late',   late);
+    animateNumber('kpi-risk',   highRisk);
+  }
+
+  // Smooth number count-up animation
+  function animateNumber(id, target) {
+    const el = document.getElementById(id);
+    let current = 0;
+    const step = Math.ceil(target / 12);
+    const timer = setInterval(() => {
+      current += step;
+      if (current >= target) {
+        current = target;
+        clearInterval(timer);
+      }
+      el.textContent = current;
+    }, 30);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SECTION 6: SORT TABLE
+  // ═══════════════════════════════════════════════════════════════════
+  function sortTable(key) {
+    // Toggle direction if same column clicked again
+    if (sortKey === key) {
+      sortAscending = !sortAscending;
+    } else {
+      sortKey = key;
+      sortAscending = true;
+    }
+
+    // Sort currentData
+    currentData.sort((a, b) => {
+      let valA = a[key];
+      let valB = b[key];
+
+      // Numeric sort for numbers
+      if (typeof valA === 'number') {
+        return sortAscending ? valA - valB : valB - valA;
+      }
+
+      // String sort
+      return sortAscending
+        ? String(valA).localeCompare(String(valB))
+        : String(valB).localeCompare(String(valA));
+    });
+
+    // Update sort indicator on headers
+    document.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
+    event.currentTarget.classList.add('sorted');
+
+    renderTable(currentData);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SECTION 7: RESET FILTERS
+  // ═══════════════════════════════════════════════════════════════════
+  function resetFilters() {
+    document.getElementById('filter-customer').value = 'ALL';
+    document.getElementById('filter-status').value   = 'ALL';
+    document.getElementById('filter-from').value     = '2024-01-01';
+    document.getElementById('filter-to').value       = '2024-12-31';
+
+    // Clear report
+    document.getElementById('report-body').innerHTML = '';
+    document.getElementById('row-count').textContent = '0';
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('empty-state').querySelector('p').textContent = 'Press "Generate Report" to load O2C data';
+
+    // Reset KPIs
+    ['kpi-total','kpi-ontime','kpi-late','kpi-risk'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SECTION 8: UTILITY HELPERS
+  // ═══════════════════════════════════════════════════════════════════
+
+  // Format YYYY-MM-DD → DD.MM.YYYY (SAP date display style)
+  function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    const [y, m, d] = dateStr.split('-');
+    return `${d}.${m}.${y}`;
+  }
+
+  // Live clock in topbar
+  function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('live-time').textContent = `${h}:${m}:${s}`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SECTION 9: INIT
+  // ═══════════════════════════════════════════════════════════════════
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Auto-run report on page load with default filters
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(generateReport, 400);
+  });
+
+</script>
+</body>
+</html>
